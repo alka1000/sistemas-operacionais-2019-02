@@ -70,6 +70,5 @@ int main (int argc, char *argv[])
    printf ("Main FIM\n");
 
    task_exit (0) ;
-
    exit (0) ;
 }

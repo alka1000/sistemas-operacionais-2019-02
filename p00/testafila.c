@@ -45,7 +45,7 @@ void print_elem (void *ptr)
 
    elem->prev ? printf ("%d", elem->prev->id) : printf ("*") ;
    printf ("<%d>", elem->id) ;
-   elem->next ? printf ("%d", elem->next->id) : printf ("*") ;
+   elem->next ? printf ("%d ", elem->next->id) : printf ("*") ;
 }
 
 //------------------------------------------------------------------------------
@@ -336,4 +336,3 @@ int main (int argc, char **argv, char **envp)
 
    exit(0) ;
 }
-

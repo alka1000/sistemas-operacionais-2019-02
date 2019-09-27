@@ -24,7 +24,7 @@ void BodyPing (void * arg)
    {
       printf ("%s %d\n", (char *) arg, i) ;
       swapcontext (&ContextPing, &ContextPong);
-   }	
+   }
    printf ("%s FIM\n", (char *) arg) ;
 
    swapcontext (&ContextPing, &ContextMain) ;
@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
    }
    else
    {
-      perror ("Erro na criação da pilha: ");
+      perror ("Erro na criaï¿½ï¿½o da pilha: ");
       exit (1);
    }
 
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
    }
    else
    {
-      perror ("Erro na criação da pilha: ");
+      perror ("Erro na criaï¿½ï¿½o da pilha: ");
       exit (1);
    }
 
