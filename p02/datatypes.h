@@ -11,9 +11,9 @@
 
 // Estrutura que define uma tarefa
 typedef struct task_t {
-
+  struct task_t *prev, *next ;  // para usar com a biblioteca de filas (cast)
   int id;                   //id de uma tarefa
-  ucontext_t task_ctx;      //contexto de uma tarefa
+  ucontext_t ctx;      //contexto de uma tarefa
   ucontext_t main_ctx;      //contexto da main
 
 } task_t ;
