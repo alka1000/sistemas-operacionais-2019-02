@@ -7,7 +7,7 @@
 
 
 #include <stdio.h>
-#include "datatypes.h"
+#include "pingpong.h"
 #include <stdlib.h>
 
 // Init do código
@@ -18,7 +18,7 @@ int id_counter = 0; // contador progressivo para dar ids às tasks
 
 // Funcs
 
-void task_id() {
+int task_id() {
     //retorna o id da tarefa rodando
     return current_task->id;
 }
@@ -31,8 +31,8 @@ void task_exit (int exit_code) {
 int task_switch (task_t *task) {
     // auxiliar para troca de tarefa
     task_t *aux = current_task;
-    swapcontext(&(aux->ctx),&(task->ctx)); // troca o contexto
     current_task = task; // troca da tarefa atual
+    swapcontext(&(aux->ctx),&(task->ctx)); // troca o contexto - tem que ser depois da troca da tarefa senão fica em loop.
     return 0;
 }
 
@@ -55,15 +55,15 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     // atribuir o ID
     makecontext(&(task->ctx), (void*)(*start_routine), 1, arg);
     task->id = id_counter;
-    id_counter++;
     // atribuir o contexto "main"
+    id_counter++;
     task->main_ctx = main_task->ctx;
     return task->id;
 }
 
 void pingpong_init() {
     setvbuf (stdout, 0, _IONBF, 0); /* desativa o buffer da saida padrao (stdout), usado pela função printf */
-    main_task = malloc(sizeof(task_t));
-    task_create(main_task,NULL,NULL);
-    current_task = main_task;
+    main_task = malloc(sizeof(task_t)); // tem q alocar senao dá Segmentation fault
+    task_create(main_task,NULL,NULL); // cria a main
+    current_task = main_task; //coloca main como atual.
 }
