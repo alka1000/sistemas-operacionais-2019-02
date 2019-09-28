@@ -9,57 +9,75 @@
 #include <stdio.h>
 #include "pingpong.h"
 #include <stdlib.h>
-#include "queue.c"
+#include "queue.h"
+
 
 // Init do código
 #define STACKSIZE 32768		/* tamanho de pilha das threads */
 
-task_t *current_task, *main_task; //uma para referenciar como a atual e outra para a main, para conseguir ir e voltar de contextos mais fácil
-task_t *dptch_task;
+task_t *current_task, *main_task, *dptch_task; //uma para referenciar como a atual e outra para a main, para conseguir ir e voltar de contextos mais fácil, agora outra pro dispatcher
+task_t *queue_rdy = NULL;
+task_t *queue_sus = NULL;
+
 int id_counter = 0; // contador progressivo para dar ids às tasks
 
 // Funcs
 
-
 void task_yield() {
-    dequeue(readyQ);
-    enqueue(readyQ, current_task)); 
+    queue_append((queue_t**)&queue_rdy,(queue_t*)current_task);
+    // dequeue(readyQ);
+    // enqueue(readyQ, current_task); 
     current_task->state = 0;
     task_switch(dptch_task);
 }
 
-task_t *scheduler()
-{
-  task_t *next_task = dispatcher_task->next;
-  return next_task;
+//coloca a main sempre no final da fila
+void reset_main() {
+    queue_remove((queue_t**)&queue_rdy,(queue_t*)main_task);
+    queue_append((queue_t**)&queue_rdy,(queue_t*)main_task);
 }
 
 
+task_t *scheduler() {
+    reset_main()
+    task_t* next_task = dptch_task->next;
+    return next_task;
+}
 
-void dispatcher_body(void *arg)
-{
-  int user_tasks = (readyQ->size) - 2;
-  while (user_tasks > 0) {
+
+void dispatcher_body() {
+  int userTasks = queue_size((queue_t*)queue_rdy) - 2;
+  while (userTasks > 0) {
     task_t* next = scheduler();
     if (next) {
-      task_switch(next);
-      user_tasks = (readyQ->size) - 2;
+      userTasks = queue_size((queue_t*)queue_rdy) - 2; //atualiza user tasks
+      task_switch(next); // muda de tarefa
     }
   }
   task_exit(0);
 }
 
 
-dispatcher_body () {                       // dispatcher é uma tarefa
-    int user_tasks = (readyQ->size) - 2
+void task_suspend(task_t *task, task_t **queue)   //usar queue_sus aqui
+{
+  if (task == NULL) {
+    task = running_task;
+  }
+  if (queue == NULL) {
+    return;
+  }
+  if (task->state == 1) {
+    queue_remove((queue_t**)&queue_rdy,(queue_t*)task);
+    queue_append((queue_t**)&queue,(queue_t*)task);
+    task->state = 2;
+  }
+}
 
-    while ( userTasks > 0 ) {
-        next = scheduler() ;               // scheduler é uma função
-        if (next) {
-            task_switch (next) ;           // transfere controle para a tarefa "next"
-        }
-    }
-    task_exit(0) ;                         // encerra a tarefa dispatcher
+void task_resume (task_t *task)
+{
+    queue_remove((queue_t**)&queue_sus,(queue_t*)task);
+    queue_append((queue_t**)&queue_rdy,(queue_t*)task);
+    task->current_state = READY;
 }
 
 
@@ -70,10 +88,20 @@ int task_id() {
 
 void task_exit (int exit_code) {
     //sair ou voltar pra main.
-    task_switch(main_task); 
+    queue_remove((queue_t**)&queue_rdy,(queue_t*)current_task);
+    if (current_task == dptch_task) { // se encerando dispatcher
+        task_switch(main_task);
+        free(dptch_task);
+        free(main_task);
+    }
+    else { // encerando outra tarefa
+        task_switch(dptch_task);
+    }
+
 }
 
 int task_switch (task_t *task) {
+    task->state = 1;                    //roda a tarefa
     // auxiliar para troca de tarefa
     task_t *aux = current_task;
     current_task = task; // troca da tarefa atual
@@ -105,14 +133,15 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     id_counter++;
     task->main_ctx = main_task->ctx;
     task->state = 0;
-    enqueue(readyQ, task);
     return task->id;
 }
 
 void pingpong_init() {
     setvbuf (stdout, 0, _IONBF, 0); /* desativa o buffer da saida padrao (stdout), usado pela função printf */
-    struct Queue* readyQ = createQueue(1000);
     main_task = malloc(sizeof(task_t)); // tem q alocar senao dá Segmentation fault
     task_create(main_task,NULL,NULL); // cria a main
     current_task = main_task; //coloca main como atual.
+    //cria o dispatcher
+    dispatcher_task = malloc(sizeof(task_t));
+    task_create(dispatcher_task,dispatcher_body,NULL);
 }
