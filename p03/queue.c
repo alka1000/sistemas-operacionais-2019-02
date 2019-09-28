@@ -2,9 +2,10 @@
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <limits.h> 
+#include "datatypes.h"
   
 // A structure to represent a queue 
-struct Queue 
+struct Queue
 { 
     int front, rear, size; 
     unsigned capacity; 
@@ -53,7 +54,12 @@ int dequeue(struct Queue* queue)
     queue->front = (queue->front + 1)%queue->capacity; 
     queue->size = queue->size - 1; 
     return item; 
-} 
+}
+
+int remove_item(struct Queue* queue, int item) {
+    if (isEmpty(queue)) 
+        return INT_MIN;
+}
   
 // Function to get front of queue 
 int front(struct Queue* queue) 
@@ -71,20 +77,20 @@ int rear(struct Queue* queue)
     return queue->array[queue->rear]; 
 } 
   
-// // Driver program to test above functions./ 
-// int main() 
-// { 
-//     struct Queue* queue = createQueue(1000); 
-  
-//     enqueue(queue, 10); 
-//     enqueue(queue, 20); 
-//     enqueue(queue, 30); 
-//     enqueue(queue, 40); 
-  
-//     printf("%d dequeued from queue\n\n", dequeue(queue)); 
-  
-//     printf("Front item is %d\n", front(queue)); 
-//     printf("Rear item is %d\n", rear(queue)); 
-  
-//     return 0; 
-// }
+ // Driver program to test above functions./ 
+/* int main() 
+ { 
+    struct Queue* queue = createQueue(1000); 
+    task_t *a;
+    enqueue(queue, a); 
+    enqueue(queue, a); 
+    enqueue(queue, 30); 
+    enqueue(queue, 40); 
+
+    printf("%d dequeued from queue\n\n", dequeue(queue)); 
+
+    printf("Front item is %d\n", front(queue)); 
+    printf("Rear item is %d\n", rear(queue)); 
+
+    return 0; 
+ }*/

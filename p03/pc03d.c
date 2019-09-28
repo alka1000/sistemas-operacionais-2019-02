@@ -150,9 +150,9 @@ void task_suspend(task_t *task, task_t **queue)
 
 void task_resume (task_t *task)
 {
-  if (task->enqueued) {
+  /**if (task->enqueued) {
     queue_remove((queue_t**)&ready_queue,(queue_t*)task);
-  }
+  }*/
   queue_append((queue_t**)&ready_queue,(queue_t*)task);
-  task->current_state = READY;
+  task->state = 1;
 }

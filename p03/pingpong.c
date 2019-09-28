@@ -19,48 +19,35 @@ task_t *dptch_task;
 int id_counter = 0; // contador progressivo para dar ids às tasks
 
 // Funcs
-
+struct Queue* readyQ;
 
 void task_yield() {
     dequeue(readyQ);
-    enqueue(readyQ, current_task)); 
+    enqueue(readyQ, current_task); 
     current_task->state = 0;
     task_switch(dptch_task);
 }
 
 task_t *scheduler()
 {
-  task_t *next_task = dispatcher_task->next;
+  task_t *next_task = dptch_task->next;
   return next_task;
 }
 
 
-
 void dispatcher_body(void *arg)
 {
-  int user_tasks = (readyQ->size) - 2;
-  while (user_tasks > 0) {
+  int usetTasks = (readyQ->size) - 2;
+  while (usetTasks > 0) {
     task_t* next = scheduler();
     if (next) {
       task_switch(next);
-      user_tasks = (readyQ->size) - 2;
+      usetTasks = (readyQ->size) - 2;
     }
   }
   task_exit(0);
 }
 
-
-dispatcher_body () {                       // dispatcher é uma tarefa
-    int user_tasks = (readyQ->size) - 2
-
-    while ( userTasks > 0 ) {
-        next = scheduler() ;               // scheduler é uma função
-        if (next) {
-            task_switch (next) ;           // transfere controle para a tarefa "next"
-        }
-    }
-    task_exit(0) ;                         // encerra a tarefa dispatcher
-}
 
 
 int task_id() {
@@ -68,17 +55,57 @@ int task_id() {
     return current_task->id;
 }
 
-void task_exit (int exit_code) {
-    //sair ou voltar pra main.
-    task_switch(main_task); 
+void task_exit(int exitCode)
+{  
+  dequeue(readyQ);
+  if (current_task == dptch_task) { // se encerando dispatcher
+    task_switch(main_task);
+    free(dptch_task);
+    free(main_task);
+  }
+  else {
+    task_switch(dptch_task);
+  }
 }
 
 int task_switch (task_t *task) {
     // auxiliar para troca de tarefa
     task_t *aux = current_task;
     current_task = task; // troca da tarefa atual
+    task->state = 1;
     swapcontext(&(aux->ctx),&(task->ctx)); // troca o contexto - tem que ser depois da troca da tarefa senão fica em loop.
     return 0;
+}
+
+
+void task_suspend(task_t *task, struct Queue* queue)
+{
+  if (task == NULL) {
+    task = current_task;
+  }
+  if (queue == NULL) {
+    return;
+  }
+  if (task->state == 1) {
+    dequeue(readyQ);
+    enqueue(queue, task);
+    task->state = 2;
+  }
+  else
+  {
+    printf("Tentando suspender tarefa %d, mas nao está executando\n",task->id );
+    exit(1);
+  }
+}
+
+
+void task_resume (task_t *task)
+{
+  /**if (task->enqueued) {
+    queue_remove((queue_t**)&ready_queue,(queue_t*)task);
+  }*/
+  queue_append((queue_t**)&ready_queue,(queue_t*)task);
+  task->state = 1;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
@@ -111,7 +138,7 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
 
 void pingpong_init() {
     setvbuf (stdout, 0, _IONBF, 0); /* desativa o buffer da saida padrao (stdout), usado pela função printf */
-    struct Queue* readyQ = createQueue(1000);
+    readyQ = createQueue(1000);
     main_task = malloc(sizeof(task_t)); // tem q alocar senao dá Segmentation fault
     task_create(main_task,NULL,NULL); // cria a main
     current_task = main_task; //coloca main como atual.
