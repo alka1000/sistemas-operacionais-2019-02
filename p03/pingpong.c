@@ -38,12 +38,12 @@ task_t *scheduler()
 
 void dispatcher_body(void *arg)
 {
-  int user_tasks = (readyQ->size) - 2
+  int user_tasks = (readyQ->size) - 2;
   while (user_tasks > 0) {
     task_t* next = scheduler();
     if (next) {
       task_switch(next);
-      user_tasks = queue_size((queue_t*)ready_queue) - 2;
+      user_tasks = (readyQ->size) - 2;
     }
   }
   task_exit(0);
@@ -100,9 +100,12 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     // atribuir o ID
     makecontext(&(task->ctx), (void*)(*start_routine), 1, arg);
     task->id = id_counter;
-    // atribuir o contexto "main"
+    task->next = NULL;
+    task->prev = NULL;
     id_counter++;
     task->main_ctx = main_task->ctx;
+    task->state = 0;
+    enqueue(readyQ, task);
     return task->id;
 }
 

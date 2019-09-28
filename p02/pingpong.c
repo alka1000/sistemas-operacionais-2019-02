@@ -55,7 +55,8 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     // atribuir o ID
     makecontext(&(task->ctx), (void*)(*start_routine), 1, arg);
     task->id = id_counter;
-    // atribuir o contexto "main"
+    task->next = NULL;
+    task->prev = NULL;
     id_counter++;
     task->main_ctx = main_task->ctx;
     return task->id;
