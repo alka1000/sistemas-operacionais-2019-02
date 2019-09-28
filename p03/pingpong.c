@@ -24,22 +24,22 @@ int id_counter = 0; // contador progressivo para dar ids às tasks
 // Funcs
 
 void task_yield() {
-    queue_append((queue_t**)&queue_rdy,(queue_t*)current_task);
-    // dequeue(readyQ);
-    // enqueue(readyQ, current_task); 
-    current_task->state = 0;
-    task_switch(dptch_task);
+  queue_append((queue_t**)&queue_rdy,(queue_t*)current_task);
+  // dequeue(readyQ);
+  // enqueue(readyQ, current_task); 
+  current_task->state = 0;
+  task_switch(dptch_task);
 }
 
 //coloca a main sempre no final da fila
 void reset_main() {
-    queue_remove((queue_t**)&queue_rdy,(queue_t*)main_task);
-    queue_append((queue_t**)&queue_rdy,(queue_t*)main_task);
+  queue_remove((queue_t**)&queue_rdy,(queue_t*)main_task);
+  queue_append((queue_t**)&queue_rdy,(queue_t*)main_task);
 }
 
 
 task_t *scheduler() {
-    reset_main()
+    reset_main();
     task_t* next_task = dptch_task->next;
     return next_task;
 }
@@ -61,7 +61,7 @@ void dispatcher_body() {
 void task_suspend(task_t *task, task_t **queue)   //usar queue_sus aqui
 {
   if (task == NULL) {
-    task = running_task;
+    task = current_task;
   }
   if (queue == NULL) {
     return;
@@ -77,7 +77,7 @@ void task_resume (task_t *task)
 {
     queue_remove((queue_t**)&queue_sus,(queue_t*)task);
     queue_append((queue_t**)&queue_rdy,(queue_t*)task);
-    task->current_state = READY;
+    task->state = 0;
 }
 
 
@@ -142,6 +142,6 @@ void pingpong_init() {
     task_create(main_task,NULL,NULL); // cria a main
     current_task = main_task; //coloca main como atual.
     //cria o dispatcher
-    dispatcher_task = malloc(sizeof(task_t));
-    task_create(dispatcher_task,dispatcher_body,NULL);
+    dptch_task = malloc(sizeof(task_t));
+    task_create(dptch_task,dispatcher_body,NULL);
 }
