@@ -34,7 +34,7 @@ int task_id () ;
 
 // suspende uma tarefa, retirando-a de sua fila atual, adicionando-a à fila
 // queue e mudando seu estado para "suspensa"; usa a tarefa atual se task==NULL
-void task_suspend(task_t *task, struct Queue* queue);
+void task_suspend (task_t *task, task_t **queue) ;
 
 // acorda uma tarefa, retirando-a de sua fila atual, adicionando-a à fila de
 // tarefas prontas ("ready queue") e mudando seu estado para "pronta"
