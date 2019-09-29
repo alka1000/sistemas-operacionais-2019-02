@@ -23,6 +23,27 @@ Queue q;
 
 // Funcs
 
+void task_setprio (task_t *task, int prio)
+{
+  if (task == NULL) {
+    task = current_task;
+  }
+  task->base_priority = prio;
+  task->priority = prio;
+}
+
+int task_getprio (task_t *task)
+{
+  if (task == NULL) {
+    task = current_task;
+  }
+  return task->base_priority;
+}
+
+
+
+
+
 void task_yield () {
     if (!isEmpty(&q)){
         if (current_task == main_task) {
@@ -35,6 +56,7 @@ void task_yield () {
             if(current_task != main_task && current_task != disp_task){
                 enqueue(&q, (void*) current_task);
                 current_task->state = 0;
+                current_task->priority = current_task->base_priority;
                 task_switch(disp_task);
             }
         }
@@ -43,7 +65,13 @@ void task_yield () {
 
 
 task_t* scheduler() {
-  return dequeue(&q);
+    bubble_sort(&q);
+    task_t *aux = dequeue(&q);
+    int i;
+    for(i=q.head;i<q.size;i++){
+        q.data[i]->priority--;
+    }
+    return aux;
 }
 
 dispatcher_body () { // dispatcher é uma tarefa
@@ -103,6 +131,7 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     task->next = NULL;
     task->prev = NULL;
     id_counter++;
+    task->priority = task->base_priority = 0;
     if (task != main_task && task != disp_task)
         enqueue(&q, (void*) task);
     task->state = 0;

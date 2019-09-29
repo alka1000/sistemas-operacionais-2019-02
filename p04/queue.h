@@ -3,11 +3,12 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <ucontext.h>
 
-#define QUEUE_CAPACITY 10
+#define QUEUE_CAPACITY 500
 
 typedef struct {
-    void* data[QUEUE_CAPACITY];
+    task_t* data[QUEUE_CAPACITY];
     size_t head;
     size_t tail;
     size_t size;
@@ -31,7 +32,7 @@ int isEmpty(Queue* pQueue)
     return pQueue && pQueue->size == 0;
 }
 
-bool enqueue(Queue* pQueue, void* item)
+bool enqueue(Queue* pQueue, task_t* item)
 {
     if (!pQueue || pQueue->size == QUEUE_CAPACITY) // when queue is full
     {
@@ -44,11 +45,12 @@ bool enqueue(Queue* pQueue, void* item)
     return true;
 }
 
-void* dequeue(Queue* pQueue)
+task_t* dequeue(Queue* pQueue)
 {
+    int i;
     // Return NULL when queue is empty
-    // Return (void*)item at the head otherwise.
-    void* item;
+    // Return (task_t*)item at the head otherwise.
+    task_t* item;
 
     if (!pQueue || isEmpty(pQueue))
     {
@@ -56,9 +58,34 @@ void* dequeue(Queue* pQueue)
     }
 
     item = pQueue->data[pQueue->head];
-    pQueue->head = (pQueue->head + 1) % QUEUE_CAPACITY;
+    pQueue->data[pQueue->head] = NULL;
+    //pQueue->head = (pQueue->head + 1) % QUEUE_CAPACITY;
+    for(i=0;i<(pQueue->size)-1;i++){
+        pQueue->data[i] = pQueue->data[i+1];
+        pQueue->data[i+1] = NULL;
+    }
+    pQueue->tail--;
     pQueue->size--;
     return item;
+}
+
+void bubble_sort (Queue* pQueue) {
+    int length = pQueue->size;
+    int i, j;
+    for (i = pQueue->head; i < length - 1; i++) {
+        for (j = pQueue->head; j < length - i - 1; j++) {
+          if (pQueue->data[j]->priority > pQueue->data[j+1]->priority) {
+            swap(&pQueue->data[j], &pQueue->data[j+1]);
+          }
+        }
+    }
+}
+
+void swap(int *a, int *b) {
+  int temp;
+  temp = *a;
+  *a = *b;
+  *b = temp;
 }
 
 void debugPrint(Queue* pQueue)

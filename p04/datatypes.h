@@ -17,6 +17,8 @@ typedef struct task_t {
   ucontext_t ctx;      //contexto de uma tarefa
   ucontext_t main_ctx;      //contexto da main
   int state;              // 0: Waiting, 1: Running, 2: Suspended
+  int base_priority;      //prioridade base a que volta quando sai quando vai da enqueue
+  int priority;           //prioridade que muda com envelhecimento
 } task_t ;
 
 // estrutura que define um semáforo
