@@ -1,0 +1,24 @@
+# depslib dependency file v1.0
+1569771840 source:/home/leonardo/Desktop/2/pingpong-dispatcher.c
+	<stdio.h>
+	<stdlib.h>
+	"pingpong.h"
+
+1569690429 /home/leonardo/Desktop/2/pingpong.h
+	"datatypes.h"
+
+1569690429 /home/leonardo/Desktop/2/datatypes.h
+	<ucontext.h>
+
+1569772604 source:/home/leonardo/Desktop/2/pingpong.c
+	<stdio.h>
+	"pingpong.h"
+	<stdlib.h>
+	"queue.h"
+
+1569700600 /home/leonardo/Desktop/2/queue.h
+	<stdbool.h>
+	<stdio.h>
+
+1569698968 source:/home/leonardo/Desktop/2/queue.c
+

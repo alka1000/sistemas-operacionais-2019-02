@@ -1,58 +1,91 @@
-//------------------------------------------------------------------------------
-// Definição e operações em uma fila genérica.
-// by Carlos Maziero, DAINF/UTFPR, maio/2013
-//------------------------------------------------------------------------------
+#ifndef QUEUE_H
+#define QUEUE_H
 
-#ifndef __QUEUE__
-#define __QUEUE__
+#include <stdbool.h>
+#include <stdio.h>
 
-#ifndef NULL
-#define NULL ((void *) 0)
-#endif
+#define QUEUE_CAPACITY 10
 
-//------------------------------------------------------------------------------
-// estrutura de uma fila genérica, sem conteúdo definido.
-// Veja um exemplo de uso desta estrutura em testafila.c
+typedef struct {
+    void* data[QUEUE_CAPACITY];
+    size_t head;
+    size_t tail;
+    size_t size;
+} Queue;
 
-typedef struct queue_t
+bool initQueue(Queue* pQueue)
 {
-   struct queue_t *prev ;  // aponta para o elemento anterior na fila
-   struct queue_t *next ;  // aponta para o elemento seguinte na fila
-} queue_t ;
+    if (!pQueue)
+    {
+        return false;
+    }
 
-//------------------------------------------------------------------------------
-// Insere um elemento no final da fila.
-// Condicoes a verificar, gerando msgs de erro:
-// - a fila deve existir
-// - o elemento deve existir
-// - o elemento nao deve estar em outra fila
+    pQueue->head = 0;
+    pQueue->tail = 0;
+    pQueue->size = 0;
+    return true;
+}
 
-void queue_append (queue_t **queue, queue_t *elem) ;
+int isEmpty(Queue* pQueue)
+{
+    return pQueue && pQueue->size == 0;
+}
 
-//------------------------------------------------------------------------------
-// Remove o elemento indicado da fila, sem o destruir.
-// Condicoes a verificar, gerando msgs de erro:
-// - a fila deve existir
-// - a fila nao deve estar vazia
-// - o elemento deve existir
-// - o elemento deve pertencer a fila indicada
-// Retorno: apontador para o elemento removido, ou NULL se erro
+bool enqueue(Queue* pQueue, void* item)
+{
+    if (!pQueue || pQueue->size == QUEUE_CAPACITY) // when queue is full
+    {
+        return false;
+    }
 
-queue_t *queue_remove (queue_t **queue, queue_t *elem) ;
+    pQueue->data[pQueue->tail] = item;
+    pQueue->tail = (pQueue->tail + 1) % QUEUE_CAPACITY;
+    pQueue->size++;
+    return true;
+}
 
-//------------------------------------------------------------------------------
-// Conta o numero de elementos na fila
-// Retorno: numero de elementos na fila
+void* dequeue(Queue* pQueue)
+{
+    // Return NULL when queue is empty
+    // Return (void*)item at the head otherwise.
+    void* item;
 
-int queue_size (queue_t *queue) ;
+    if (!pQueue || isEmpty(pQueue))
+    {
+        return NULL;
+    }
 
-//------------------------------------------------------------------------------
-// Percorre a fila e imprime na tela seu conteúdo. A impressão de cada
-// elemento é feita por uma função externa, definida pelo programa que
-// usa a biblioteca. Essa função deve ter o seguinte protótipo:
-//
-// void print_elem (void *ptr) ; // ptr aponta para o elemento a imprimir
+    item = pQueue->data[pQueue->head];
+    pQueue->head = (pQueue->head + 1) % QUEUE_CAPACITY;
+    pQueue->size--;
+    return item;
+}
 
-void queue_print (char *name, queue_t *queue, void print_elem (void*) ) ;
+void debugPrint(Queue* pQueue)
+{
+    size_t index;
+    size_t tmp;
+
+    if (!pQueue)
+    {
+        printf("null");
+        return;
+    }
+
+    printf("[");
+
+    if (pQueue->size >= 1)
+    {
+        printf("%d", (int) pQueue->data[pQueue->head]);
+    }
+
+    for (index = 1; index < pQueue->size; ++index)
+    {
+        tmp = (pQueue->head + index) % QUEUE_CAPACITY;
+        printf(", %d", (int) pQueue->data[tmp]);
+    }
+
+    printf("]");
+}
 
 #endif
