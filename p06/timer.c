@@ -36,7 +36,7 @@ void start_tim (void *tratador)
   // ajusta valores do temporizador
   timer.it_value.tv_usec = 30 ;      // primeiro disparo, em micro-segundos
   //timer.it_value.tv_usec  = 1 ;      // primeiro disparo, em segundos
-  timer.it_interval.tv_usec = 200 ;   // disparos subsequentes, em micro-segundos
+  timer.it_interval.tv_usec = 100 ;   // disparos subsequentes, em micro-segundos
   //timer.it_interval.tv_usec  = 0 ;   // disparos subsequentes, em segundos
 
   // arma o temporizador ITIMER_REAL (vide man setitimer)

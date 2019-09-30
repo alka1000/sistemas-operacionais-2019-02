@@ -152,7 +152,7 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
 }
 
 unsigned int systime() {
-    return tick*5;
+    return tick/10;
 }
 
 void tratador(int signum)
