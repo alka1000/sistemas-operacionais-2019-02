@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "timer.h"
+#include <sys/time.h>
 
 // operating system check
 #if defined(_WIN32) || (!defined(__unix__) && !defined(__unix) && (!defined(__APPLE__) || !defined(__MACH__)))
@@ -20,8 +20,7 @@ struct itimerval timer;
 // tratador do sinal
 
 
-int start_tim (void *tratador)
-{
+void start_tim (void *tratador) {
   // registra a a��o para o sinal de timer SIGALRM
   action.sa_handler = tratador ;
   sigemptyset (&action.sa_mask) ;
@@ -33,7 +32,7 @@ int start_tim (void *tratador)
   }
 
   // ajusta valores do temporizador
-  timer.it_value.tv_usec = 0 ;      // primeiro disparo, em micro-segundos
+  timer.it_value.tv_usec = 30 ;      // primeiro disparo, em micro-segundos
   //timer.it_value.tv_usec  = 1 ;      // primeiro disparo, em segundos
   timer.it_interval.tv_usec = 200 ;   // disparos subsequentes, em micro-segundos
   //timer.it_interval.tv_usec  = 0 ;   // disparos subsequentes, em segundos

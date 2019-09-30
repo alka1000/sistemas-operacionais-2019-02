@@ -61,42 +61,16 @@ void bubble_sort (Queue* pQueue) {
     for (i = pQueue->head; i < length - 1; i++) {
         for (j = pQueue->head; j < length - i - 1; j++) {
           if (pQueue->data[j]->priority > pQueue->data[j+1]->priority) {
-            swap(&pQueue->data[j], &pQueue->data[j+1]);
+            swap(pQueue->data[j], pQueue->data[j+1]);
           }
         }
     }
 }
 
-void swap(int *a, int *b) {
-  int temp;
+void swap(task_t *a, task_t *b) {
+  task_t temp;
   temp = *a;
   *a = *b;
   *b = temp;
 }
 
-void debugPrint(Queue* pQueue)
-{
-    size_t index;
-    size_t tmp;
-
-    if (!pQueue)
-    {
-        printf("null");
-        return;
-    }
-
-    printf("[");
-
-    if (pQueue->size >= 1)
-    {
-        printf("%d", (int) pQueue->data[pQueue->head]);
-    }
-
-    for (index = 1; index < pQueue->size; ++index)
-    {
-        tmp = (pQueue->head + index) % QUEUE_CAPACITY;
-        printf(", %d", (int) pQueue->data[tmp]);
-    }
-
-    printf("]");
-}

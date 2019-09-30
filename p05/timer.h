@@ -4,4 +4,4 @@
 
 
 
-void init_timer();
+void start_tim();
