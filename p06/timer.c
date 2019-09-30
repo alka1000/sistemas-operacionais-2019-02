@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/time.h>
+#include "timer.h"
 
 // operating system check
 #if defined(_WIN32) || (!defined(__unix__) && !defined(__unix) && (!defined(__APPLE__) || !defined(__MACH__)))
@@ -20,7 +21,7 @@ struct itimerval timer;
 // tratador do sinal
 
 
-int start_tim (void *tratador)
+void start_tim (void *tratador)
 {
   // registra a a��o para o sinal de timer SIGALRM
   action.sa_handler = tratador ;

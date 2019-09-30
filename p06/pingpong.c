@@ -82,7 +82,7 @@ task_t* scheduler() {
     return aux;
 }
 
-dispatcher_body () { // dispatcher é uma tarefa
+void dispatcher_body () { // dispatcher é uma tarefa
     while ( !isEmpty(&q) ) {
         task_t* next = scheduler(); // scheduler é uma função
         if (next) {
