@@ -17,7 +17,6 @@
 
 task_t *current_task, *main_task, *disp_task; //uma para referenciar como a atual e outra para a main, para conseguir ir e voltar de contextos mais fácil
 int id_counter = 0; // contador progressivo para dar ids às tasks
-//queue_t **queue_rdy = NULL;
 Queue q;
 
 int tick = 0;
@@ -100,9 +99,8 @@ int task_id() {
 }
 
 void task_exit (int exit_code) {
-    unsigned end_time = systime();
-    printf("Task %d exit: running time %d ms, cpu time %d ms, %d activations.\n",
-        task_id(),end_time-current_task->exec_time,current_task->proc_time, current_task->activations);
+    unsigned int end = systime();
+    printf("Task %d exit: running time %d ms, cpu time %d ms, %d activations.\n", task_id(), end-current_task->exec_time, current_task->proc_time, current_task->activations);
     if (current_task == disp_task) {
         task_switch(main_task);
     } else {
@@ -154,7 +152,7 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
 }
 
 unsigned int systime() {
-    return tick;
+    return tick*5;
 }
 
 void tratador(int signum)

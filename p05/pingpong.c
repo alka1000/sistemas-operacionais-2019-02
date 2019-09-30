@@ -17,7 +17,6 @@
 
 task_t *current_task, *main_task, *disp_task; //uma para referenciar como a atual e outra para a main, para conseguir ir e voltar de contextos mais fácil
 int id_counter = 0; // contador progressivo para dar ids às tasks
-//queue_t **queue_rdy = NULL;
 Queue q;
 
 

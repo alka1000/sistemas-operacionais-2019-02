@@ -19,10 +19,10 @@ typedef struct task_t {
   int state;              // 0: Waiting, 1: Running, 2: Suspended
   int base_priority;      //prioridade base a que volta quando sai quando vai da enqueue
   int priority;           //prioridade que muda com envelhecimento
-  int quantum;
-  unsigned int proc_time;
-  unsigned int exec_time;
-  int activations;
+  int quantum;  
+  unsigned int proc_time; //guarda o tempo de processamento (quanto tempo ficou com o processador)
+  unsigned int exec_time; //guarda o tempo de execução desde sua criação
+  int activations;  //quantas vezes foi chamada a função
 } task_t ;
 
 // estrutura que define um semáforo

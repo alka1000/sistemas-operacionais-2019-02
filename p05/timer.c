@@ -1,6 +1,9 @@
-// Exemplo de uso de timer UNIX
-// Carlos Maziero, 2015
 
+// Carlos Maziero, 2015
+/**
+ *  Leonardo Reis - Amir Leonardo
+ * 
+ *  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -17,8 +20,7 @@ struct sigaction action ;
 // estrutura de inicialização to timer
 struct itimerval timer;
 
-// tratador do sinal
-
+// tratador vem do pingpong c por referencia
 
 void start_tim (void *tratador) {
   // registra a a��o para o sinal de timer SIGALRM
@@ -43,6 +45,4 @@ void start_tim (void *tratador) {
     perror ("Erro em setitimer: ") ;
     exit (1) ;
   }
-
-  // laco vazio
 }

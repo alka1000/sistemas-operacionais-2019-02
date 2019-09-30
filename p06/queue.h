@@ -1,3 +1,11 @@
+/**
+ * Snippet de código pego de https://codereview.stackexchange.com/a/128201
+ * Modificado para melhor se adaptar as necessidades do codigo.
+ *
+ *  Leonardo Reis - Amir Leonardo
+ * 
+ *  */
+
 #ifndef QUEUE_H
 #define QUEUE_H
 
