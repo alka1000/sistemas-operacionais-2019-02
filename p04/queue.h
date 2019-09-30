@@ -25,7 +25,7 @@ task_t* dequeue(Queue* pQueue);
 
 void bubble_sort (Queue* pQueue);
 
-void swap(int *a, int *b);
+void swap(task_t *a, task_t *b);
 
 void debugPrint(Queue* pQueue);
 
