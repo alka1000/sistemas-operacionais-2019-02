@@ -9,13 +9,14 @@
 #ifndef __DATATYPES__
 #define __DATATYPES__
 
+
 // Estrutura que define uma tarefa
 typedef struct task_t {
   struct task_t *prev, *next ;  // para usar com a biblioteca de filas (cast)
   int id;                   //id de uma tarefa
   ucontext_t ctx;      //contexto de uma tarefa
   ucontext_t main_ctx;      //contexto da main
-
+  int state;              // 0: Waiting, 1: Running, 2: Suspended
 } task_t ;
 
 // estrutura que define um semáforo
@@ -39,4 +40,3 @@ typedef struct {
 } mqueue_t ;
 
 #endif
-

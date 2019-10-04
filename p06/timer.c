@@ -1,13 +1,11 @@
-
+// Exemplo de uso de timer UNIX
 // Carlos Maziero, 2015
-/**
- *  Leonardo Reis - Amir Leonardo
- * 
- *  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/time.h>
+#include "timer.h"
 
 // operating system check
 #if defined(_WIN32) || (!defined(__unix__) && !defined(__unix) && (!defined(__APPLE__) || !defined(__MACH__)))
@@ -20,9 +18,11 @@ struct sigaction action ;
 // estrutura de inicialização to timer
 struct itimerval timer;
 
-// tratador vem do pingpong c por referencia
+// tratador do sinal
 
-void start_tim (void *tratador) {
+
+void start_tim (void *tratador)
+{
   // registra a a��o para o sinal de timer SIGALRM
   action.sa_handler = tratador ;
   sigemptyset (&action.sa_mask) ;
@@ -36,7 +36,7 @@ void start_tim (void *tratador) {
   // ajusta valores do temporizador
   timer.it_value.tv_usec = 30 ;      // primeiro disparo, em micro-segundos
   //timer.it_value.tv_usec  = 1 ;      // primeiro disparo, em segundos
-  timer.it_interval.tv_usec = 200 ;   // disparos subsequentes, em micro-segundos
+  timer.it_interval.tv_usec = 100 ;   // disparos subsequentes, em micro-segundos
   //timer.it_interval.tv_usec  = 0 ;   // disparos subsequentes, em segundos
 
   // arma o temporizador ITIMER_REAL (vide man setitimer)
@@ -45,4 +45,6 @@ void start_tim (void *tratador) {
     perror ("Erro em setitimer: ") ;
     exit (1) ;
   }
+
+  // laco vazio
 }
