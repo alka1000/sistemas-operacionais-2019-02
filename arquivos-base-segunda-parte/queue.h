@@ -36,4 +36,8 @@ void swap(task_t *a, task_t *b);
 
 void debugPrint(Queue* pQueue);
 
+int has_task (Queue* pQueue, task_t* task) ;
+
+task_t *remove_task (Queue* pQueue, int task) ;
+
 #endif

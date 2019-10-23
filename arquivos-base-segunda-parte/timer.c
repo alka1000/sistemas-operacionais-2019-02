@@ -45,6 +45,6 @@ void start_tim (void *tratador)
     perror ("Erro em setitimer: ") ;
     exit (1) ;
   }
-  printf("aaaa\n");
+
   // laco vazio
 }

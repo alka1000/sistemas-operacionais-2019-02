@@ -23,6 +23,8 @@ typedef struct task_t {
   unsigned int proc_time; //guarda o tempo de processamento (quanto tempo ficou com o processador)
   unsigned int exec_time; //guarda o tempo de execução desde sua criação
   int activations;  //quantas vezes foi chamada a função
+  struct task_t *waiting_task;  //tarefa que está esperando para sair do modo suspenso
+  int waiting_status;  //status de saída da tarefa que estava esperando para sair do modo suspenso
 } task_t ;
 
 // estrutura que define um semáforo

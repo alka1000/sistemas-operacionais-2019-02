@@ -75,6 +75,41 @@ void bubble_sort (Queue* pQueue) {
     }
 }
 
+int has_task (Queue* pQueue, task_t* task) {
+    int length = pQueue->size;
+    int i;
+    for (i = pQueue->head; i < length ; i++) {
+      if (pQueue->data[i] == task) {
+        return 1;
+      }
+    }
+    return 0;
+}
+
+
+task_t *remove_task (Queue* pQueue, int i) {
+
+    task_t* item;
+
+    if (!pQueue || isEmpty(pQueue))
+    {
+        return NULL;
+    }
+
+    item = pQueue->data[i];
+
+    pQueue->data[i] = NULL;
+
+    for(int j=i;j<(pQueue->size)-1;j++){
+        pQueue->data[j] = pQueue->data[j+1];
+        pQueue->data[j+1] = NULL;
+    }
+
+    pQueue->tail--;
+    pQueue->size--;
+    return item;
+}
+
 void swap(task_t *a, task_t *b) {
   task_t temp;
   temp = *a;

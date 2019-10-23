@@ -13,11 +13,12 @@
 #include "timer.h"
 
 // Init do código
-#define STACKSIZE 32768		/* tamanho de pilha das threads */
+#define STACKSIZE 32768     /* tamanho de pilha das threads */
 
 task_t *current_task, *main_task, *disp_task; //uma para referenciar como a atual e outra para a main, para conseguir ir e voltar de contextos mais fácil
 int id_counter = 0; // contador progressivo para dar ids às tasks
 Queue q;
+Queue q_suspended;
 
 int tick = 0;
 int proc_time_helper = 0;
@@ -80,6 +81,27 @@ void dispatcher_body () { // dispatcher é uma tarefa
     task_exit(0) ; // encerra a tarefa dispatcher
 }
 
+int task_join(task_t *task) {
+    if (has_task(&q, task) || has_task(&q_suspended, task)) {
+        
+        current_task->waiting_task = task;
+        current_task->state = 2;
+        current_task->quantum = 20;
+        current_task->proc_time+=systime()-proc_time_helper;
+        current_task->priority = current_task->base_priority;
+
+        task_t *c_task = current_task;
+
+        enqueue(&q_suspended, (void*) c_task);
+
+        task_switch(disp_task);
+        
+        return c_task->waiting_status;
+    } else {
+        return -1;
+    }
+}
+
 
 
 int task_id() {
@@ -90,6 +112,20 @@ int task_id() {
 void task_exit (int exit_code) {
     unsigned int end = systime();
     printf("Task %d exit: running time %d ms, cpu time %d ms, %d activations.\n", task_id(), end-current_task->exec_time, current_task->proc_time, current_task->activations);
+    
+    
+    for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+        if ((&q_suspended)->data[i]->waiting_task == current_task) {
+            
+            task_t *item = remove_task(&q_suspended, i);
+
+            item->waiting_status = exit_code;
+            enqueue(&q, (void*) item);
+        }
+    }
+    
+
+
     if (current_task == disp_task) {
         return;
     }
@@ -157,6 +193,7 @@ void tratador(int signum)
 void pingpong_init() {
     setvbuf (stdout, 0, _IONBF, 0); /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     initQueue(&q);
+    initQueue(&q_suspended);
     main_task = malloc(sizeof(task_t)); // tem q alocar senao dá Segmentation fault
     task_create(main_task,NULL,NULL); // cria a main
     //dispatcher
@@ -164,9 +201,7 @@ void pingpong_init() {
     task_create(disp_task, dispatcher_body, NULL);
 
     current_task = main_task; //coloca main como atual.
-    
-    start_tim(tratador);
     task_switch(disp_task);
-    
+    start_tim(tratador);
 }
 
