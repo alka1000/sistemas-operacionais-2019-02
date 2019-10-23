@@ -209,22 +209,22 @@ int sem_up (semaphore_t *s) {
         return -1;
     }
     s->count++;
+    task_t *item = NULL;
     // printf("semup %d\n", s->count);
     if (s->count <= 0) {
-        task_t *item = NULL;
         if (!isEmpty(&s->fila)) {
             item = dequeue(&s->fila);
             for (int i = (&q_suspended)->size-1; i >= 0; i--) {
                 if (((task_t*)(&q_suspended)->data[i]) == item) {
-                    
                     remove_task(&q_suspended, i);
-
-                    item->state = 0;
-                    item->waiting_status = 0;
-                    enqueue(&q, (void*) item);
                 }
             }
         }
+    }
+    if (item){
+        item->state = 0;
+        item->waiting_status = 0;
+        enqueue(&q, (void*) item);
     }
     return 0;
 }
@@ -237,6 +237,11 @@ int sem_destroy (semaphore_t *s) {
     }
     while (!isEmpty(&s->fila)) {
         task_t *item = dequeue(&s->fila);
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
         if (item) {
             item->state = 0;
             item->waiting_status = -1;
