@@ -25,6 +25,7 @@ typedef struct task_t {
   int activations;  //quantas vezes foi chamada a função
   struct task_t *waiting_task;  //tarefa que está esperando para sair do modo suspenso
   int waiting_status;  //status de saída da tarefa que estava esperando para sair do modo suspenso
+  unsigned int sleep_time;  //dormir até o tempo sleep_time
 } task_t ;
 
 // estrutura que define um semáforo

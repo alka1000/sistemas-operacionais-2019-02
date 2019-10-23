@@ -19,6 +19,7 @@ task_t *current_task, *main_task, *disp_task; //uma para referenciar como a atua
 int id_counter = 0; // contador progressivo para dar ids às tasks
 Queue q;
 Queue q_suspended;
+Queue q_sleeping;
 
 int tick = 0;
 int proc_time_helper = 0;
@@ -60,19 +61,36 @@ void task_yield () {
 
 
 task_t* scheduler() {
-    bubble_sort(&q);
-    task_t *aux = dequeue(&q);
-    aux->activations++;
-    proc_time_helper = systime();
-    int i;
-    for(i=q.head;i<q.size;i++){
-        q.data[i]->priority--;
+    task_t *aux = NULL;
+    // acorda as tarefas
+    for (int i = (&q_sleeping)->size-1; i >= 0; i--) {
+        if ((&q_sleeping)->data[i]->sleep_time < systime()) {
+            task_t *item = remove_task(&q_sleeping, i);
+            item->state = 0;
+            
+            enqueue(&q, (void*) item);
+            
+        }
+    }
+    if (!isEmpty(&q)) {
+        bubble_sort(&q);
+        aux = dequeue(&q);
+        aux->activations++;
+        proc_time_helper = systime();
+        int i;
+        for(i=q.head;i<q.size;i++){
+            q.data[i]->priority--;
+        }
     }
     return aux;
+    
 }
 
 void dispatcher_body () { // dispatcher é uma tarefa
-    while ( !isEmpty(&q) ) {
+    while ( !isEmpty(&q) || !isEmpty(&q_sleeping) || !isEmpty(&q_suspended) ) {
+        
+        // printf("%d\n", systime());
+        // printf("passou %d \n", systime());
         task_t* next = scheduler(); // scheduler é uma função
         if (next) {
             task_switch (next) ; // transfere controle para a tarefa "next"
@@ -102,6 +120,18 @@ int task_join(task_t *task) {
     }
 }
 
+void task_sleep (int t) {
+    current_task->sleep_time = (t*1000)+systime();
+    current_task->state = 2;
+    current_task->quantum = 20;
+    current_task->proc_time+=systime()-proc_time_helper;
+    current_task->priority = current_task->base_priority;
+
+    enqueue(&q_sleeping, (void*) current_task);
+    
+    task_switch(disp_task);
+
+}
 
 
 int task_id() {
@@ -119,6 +149,7 @@ void task_exit (int exit_code) {
             
             task_t *item = remove_task(&q_suspended, i);
 
+            item->state = 0;
             item->waiting_status = exit_code;
             enqueue(&q, (void*) item);
         }
@@ -129,6 +160,7 @@ void task_exit (int exit_code) {
     if (current_task == disp_task) {
         return;
     }
+
     task_switch(disp_task);
 }
 
@@ -191,6 +223,7 @@ void tratador(int signum)
 }
 
 void pingpong_init() {
+    
     setvbuf (stdout, 0, _IONBF, 0); /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     initQueue(&q);
     initQueue(&q_suspended);
@@ -201,7 +234,11 @@ void pingpong_init() {
     task_create(disp_task, dispatcher_body, NULL);
 
     current_task = main_task; //coloca main como atual.
-    task_switch(disp_task);
+
     start_tim(tratador);
+
+    task_switch(disp_task);
+
+
 }
 
