@@ -81,3 +81,30 @@ void swap(task_t *a, task_t *b) {
   *a = *b;
   *b = temp;
 }
+
+void debugPrint(Queue* pQueue)
+{
+    size_t index;
+    size_t tmp;
+
+    if (!pQueue)
+    {
+        printf("null");
+        return;
+    }
+
+    printf("[");
+
+    if (pQueue->size >= 1)
+    {
+        printf("%d", (int) pQueue->data[pQueue->head]->id);
+    }
+
+    for (index = 1; index < pQueue->size; ++index)
+    {
+        tmp = (pQueue->head + index) % QUEUE_CAPACITY;
+        printf(", %d", (int) pQueue->data[tmp]->id);
+    }
+
+    printf("]");
+}

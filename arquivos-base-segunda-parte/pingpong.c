@@ -42,31 +42,20 @@ int task_getprio (task_t *task)
   return task->base_priority;
 }
 
-
-
-
-
 void task_yield () {
     disp_task->activations++;
-    if (!isEmpty(&q)){
-        if (current_task == main_task) {
-            task_switch(disp_task);
-        }
-        if (current_task == disp_task) {
-            return;
-        }
-        else {
-            if(current_task != main_task && current_task != disp_task){
-                enqueue(&q, (void*) current_task);
-                current_task->state = 0;
-                current_task->quantum = 20;
-                current_task->proc_time+=systime()-proc_time_helper;
-                current_task->priority = current_task->base_priority;
-                task_switch(disp_task);
-            }
-        }
+    if (current_task == disp_task) {
+        return;
     }
-}               //aqui ta pronto
+    else {
+        enqueue(&q, (void*) current_task);
+        current_task->state = 0;
+        current_task->quantum = 20;
+        current_task->proc_time+=systime()-proc_time_helper;
+        current_task->priority = current_task->base_priority;
+        task_switch(disp_task);
+    }
+}
 
 
 task_t* scheduler() {
@@ -102,10 +91,9 @@ void task_exit (int exit_code) {
     unsigned int end = systime();
     printf("Task %d exit: running time %d ms, cpu time %d ms, %d activations.\n", task_id(), end-current_task->exec_time, current_task->proc_time, current_task->activations);
     if (current_task == disp_task) {
-        task_switch(main_task);
-    } else {
-        task_switch(disp_task);
+        return;
     }
+    task_switch(disp_task);
 }
 
 int task_switch (task_t *task) {
@@ -144,7 +132,7 @@ int task_create (task_t *task, void (*start_routine)(void *), void *arg) {
     task->prev = NULL;
     id_counter++;
     task->priority = task->base_priority = 0;
-    if (task != main_task && task != disp_task)
+    if (task != disp_task)
         enqueue(&q, (void*) task);
     task->state = 0;
     task->quantum=20;
@@ -158,7 +146,7 @@ unsigned int systime() {
 void tratador(int signum)
 {
     tick++;
-  if (current_task != main_task && current_task != disp_task) {
+  if (current_task != disp_task) {
     current_task->quantum--;
     if (current_task->quantum == 0) {
       task_yield();
@@ -174,7 +162,11 @@ void pingpong_init() {
     //dispatcher
     disp_task = malloc(sizeof(task_t));
     task_create(disp_task, dispatcher_body, NULL);
+
     current_task = main_task; //coloca main como atual.
+    
     start_tim(tratador);
+    task_switch(disp_task);
+    
 }
 
