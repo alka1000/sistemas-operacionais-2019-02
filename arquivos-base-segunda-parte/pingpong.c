@@ -253,6 +253,77 @@ int sem_destroy (semaphore_t *s) {
 }
 
 
+// Inicializa uma barreira
+int barrier_create (barrier_t *b, int N) {
+    initQueue(&b->fila);
+    // debugPrint(&s->fila);
+    b->count = N;
+    // printf("semcreate %d\n", s->count);
+    return 0;
+}
+
+// Chega a uma barreira
+int barrier_join (barrier_t *b) {
+    if (!b) {
+        return -1;
+    }
+    // printf("tamanho fila = %d\n", (int)(&b->fila)->size);
+    if ((&b->fila)->size == b->count-1) {
+        while (!isEmpty(&b->fila)) {
+            task_t *item = dequeue(&b->fila);
+            //tira da fila de suspensas
+            for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+                if (((task_t*)(&q_suspended)->data[i]) == item) {
+                    remove_task(&q_suspended, i);
+                }
+            }
+            //coloca na fila de espera
+            if (item) {
+                item->state = 0;
+                item->waiting_status = 0;
+                enqueue(&q, (void*) item);
+            }
+        }
+        return 0;
+    } else {
+        enqueue(&b->fila, (void*) current_task);
+        enqueue(&q_suspended, (void*) current_task);
+        // debugPrint(&s->fila);
+        current_task->state = 2;
+        current_task->quantum = 20;
+        current_task->proc_time+=systime()-proc_time_helper;
+        current_task->priority = current_task->base_priority;
+        task_t *c_task = current_task;
+        task_switch(disp_task);
+        return c_task->waiting_status;
+    }
+}
+
+// Destrói uma barreira
+int barrier_destroy (barrier_t *b) {
+    if (!b) {
+        return -1;
+    }
+    while (!isEmpty(&b->fila)) {
+        task_t *item = dequeue(&b->fila);
+        //retira da fila de suspensas
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
+        //coloca na fila de prontas
+        if (item) {
+            item->state = 0;
+            item->waiting_status = -1;
+            enqueue(&q, (void*) item);
+        }
+    }
+    b = NULL;
+    return 0;
+}
+
+
 int task_id() {
     //retorna o id da tarefa rodando
     return current_task->id;

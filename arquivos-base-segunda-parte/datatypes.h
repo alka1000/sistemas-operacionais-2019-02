@@ -43,7 +43,8 @@ typedef struct {
 
 // estrutura que define uma barreira
 typedef struct {
-  // preencher quando necessário
+  Queue fila; // fila de tarefas
+  int count; //contador
 } barrier_t ;
 
 // estrutura que define uma fila de mensagens

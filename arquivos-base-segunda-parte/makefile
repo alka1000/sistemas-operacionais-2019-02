@@ -1,7 +1,10 @@
 #Aprendido em https://www.cs.swarthmore.edu/~newhall/unixhelp/howto_makefiles.html
 .PHONY: all clean
 
-all: clean pingpong-semaphore
+all: clean pingpong-barrier
+
+pingpong-barrier: pingpong-barrier.c
+	gcc -g -Wall -o pingpong-barrier pingpong-barrier.c pingpong.c queue.c timer.c
 
 pingpong-prodcons: pingpong-prodcons.c
 	gcc -g -Wall -o pingpong-prodcons pingpong-prodcons.c pingpong.c queue.c timer.c
@@ -19,4 +22,4 @@ pingpong-join: pingpong-join.c
 	gcc -g -Wall -o pingpong-join pingpong-join.c pingpong.c queue.c timer.c
 
 clean:
-	$(RM) pingpong-sleep pingpong-join pingpong-racecond pingpong-semaphore pingpong-prodcons
+	$(RM) pingpong-sleep pingpong-join pingpong-racecond pingpong-semaphore pingpong-prodcons pingpong-barrier
