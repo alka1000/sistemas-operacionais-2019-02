@@ -5,6 +5,7 @@
 // Estruturas de dados internas do sistema operacional
 
 #include <ucontext.h>
+#include "queue.h"
 
 #ifndef __DATATYPES__
 #define __DATATYPES__
@@ -27,10 +28,12 @@ typedef struct task_t {
   int waiting_status;  //status de saída da tarefa que estava esperando para sair do modo suspenso
   unsigned int sleep_time;  //dormir até o tempo sleep_time
 } task_t ;
+  
 
 // estrutura que define um semáforo
 typedef struct {
-  // preencher quando necessário
+  Queue fila; // fila de tarefas
+  int count; //contador
 } semaphore_t ;
 
 // estrutura que define um mutex

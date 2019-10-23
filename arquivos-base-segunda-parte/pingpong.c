@@ -24,6 +24,45 @@ Queue q_sleeping;
 int tick = 0;
 int proc_time_helper = 0;
 
+void debugPrint(Queue* pQueue)
+{
+    size_t index;
+    size_t tmp;
+
+    if (!pQueue)
+    {
+        printf("null");
+        return;
+    }
+
+    printf("[");
+
+    if (pQueue->size >= 1)
+    {
+        printf("%d", (int) ((task_t*)pQueue->data[pQueue->head])->id);
+    }
+
+    for (index = 1; index < pQueue->size; ++index)
+    {
+        tmp = (pQueue->head + index) % QUEUE_CAPACITY;
+        printf(", %d", (int) ((task_t*)pQueue->data[tmp])->id);
+    }
+
+    printf("]");
+}
+
+
+void bubble_sort (Queue* pQueue) {
+    int length = pQueue->size;
+    int i, j;
+    for (i = pQueue->head; i < length - 1; i++) {
+        for (j = pQueue->head; j < length - i - 1; j++) {
+          if (((task_t*)pQueue->data[j])->priority > ((task_t*)pQueue->data[j+1])->priority) {
+            swap(pQueue->data[j], pQueue->data[j+1]);
+          }
+        }
+    }
+}
 
 // Funcs
 
@@ -64,7 +103,7 @@ task_t* scheduler() {
     task_t *aux = NULL;
     // acorda as tarefas
     for (int i = (&q_sleeping)->size-1; i >= 0; i--) {
-        if ((&q_sleeping)->data[i]->sleep_time < systime()) {
+        if ( ((task_t*)(&q_sleeping)->data[i]) ->sleep_time < systime()) {
             task_t *item = remove_task(&q_sleeping, i);
             item->state = 0;
             
@@ -79,7 +118,7 @@ task_t* scheduler() {
         proc_time_helper = systime();
         int i;
         for(i=q.head;i<q.size;i++){
-            q.data[i]->priority--;
+            ((task_t*)q.data[i])->priority--;
         }
     }
     return aux;
@@ -133,6 +172,81 @@ void task_sleep (int t) {
 
 }
 
+// cria um semáforo com valor inicial "value"
+int sem_create (semaphore_t *s, int value) {
+    initQueue(&s->fila);
+    // debugPrint(&s->fila);
+    s->count = value;
+    // printf("semcreate %d\n", s->count);
+    return 0;
+}
+
+// requisita o semáforo
+int sem_down (semaphore_t *s) {
+    if (!s) {
+        return -1;
+    }
+    s->count--;
+    // printf("semdown %d\n", s->count);
+    if (s->count < 0) {
+        enqueue(&s->fila, (void*) current_task);
+        enqueue(&q_suspended, (void*) current_task);
+        // debugPrint(&s->fila);
+        current_task->state = 2;
+        current_task->quantum = 20;
+        current_task->proc_time+=systime()-proc_time_helper;
+        current_task->priority = current_task->base_priority;
+        task_t *c_task = current_task;
+        task_switch(disp_task);
+        return c_task->waiting_status;
+    }
+    return 0;
+}
+
+// libera o semáforo
+int sem_up (semaphore_t *s) {
+    if (!s) {
+        return -1;
+    }
+    s->count++;
+    // printf("semup %d\n", s->count);
+    if (s->count <= 0) {
+        task_t *item = NULL;
+        if (!isEmpty(&s->fila)) {
+            item = dequeue(&s->fila);
+            for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+                if (((task_t*)(&q_suspended)->data[i]) == item) {
+                    
+                    remove_task(&q_suspended, i);
+
+                    item->state = 0;
+                    item->waiting_status = 0;
+                    enqueue(&q, (void*) item);
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+// destroi o semáforo, liberando as tarefas bloqueadas
+int sem_destroy (semaphore_t *s) {
+
+    if (!s) {
+        return -1;
+    }
+    while (!isEmpty(&s->fila)) {
+        task_t *item = dequeue(&s->fila);
+        if (item) {
+            item->state = 0;
+            item->waiting_status = -1;
+            enqueue(&q, (void*) item);
+        }
+    }
+    s = NULL;
+    return 0;
+}
+
 
 int task_id() {
     //retorna o id da tarefa rodando
@@ -145,7 +259,7 @@ void task_exit (int exit_code) {
     
     
     for (int i = (&q_suspended)->size-1; i >= 0; i--) {
-        if ((&q_suspended)->data[i]->waiting_task == current_task) {
+        if (((task_t*)(&q_suspended)->data[i])->waiting_task == current_task) {
             
             task_t *item = remove_task(&q_suspended, i);
 

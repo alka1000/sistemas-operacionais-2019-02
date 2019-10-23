@@ -12,12 +12,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <ucontext.h>
-#include "datatypes.h"
 
 #define QUEUE_CAPACITY 500
 
 typedef struct {
-    task_t* data[QUEUE_CAPACITY];
+    void* data[QUEUE_CAPACITY];
     size_t head;
     size_t tail;
     size_t size;
@@ -26,18 +25,14 @@ typedef struct {
 bool initQueue(Queue* pQueue);
 
 int isEmpty(Queue* pQueue);
-bool enqueue(Queue* pQueue, task_t* item);
+bool enqueue(Queue* pQueue, void* item);
 
-task_t* dequeue(Queue* pQueue);
+void* dequeue(Queue* pQueue);
 
-void bubble_sort (Queue* pQueue);
+void swap(void *a, void *b);
 
-void swap(task_t *a, task_t *b);
+int has_task (Queue* pQueue, void* task) ;
 
-void debugPrint(Queue* pQueue);
-
-int has_task (Queue* pQueue, task_t* task) ;
-
-task_t *remove_task (Queue* pQueue, int task) ;
+void *remove_task (Queue* pQueue, int task) ;
 
 #endif
