@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "pingpong.h"
 #include <stdlib.h>
+#include <string.h>
 #include "queue.h"
 #include "timer.h"
 
@@ -177,13 +178,14 @@ int sem_create (semaphore_t *s, int value) {
     initQueue(&s->fila);
     // debugPrint(&s->fila);
     s->count = value;
+    s->destroyed = 0;
     // printf("semcreate %d\n", s->count);
     return 0;
 }
 
 // requisita o semáforo
 int sem_down (semaphore_t *s) {
-    if (!s) {
+    if (s->destroyed) {
         return -1;
     }
     s->count--;
@@ -205,7 +207,7 @@ int sem_down (semaphore_t *s) {
 
 // libera o semáforo
 int sem_up (semaphore_t *s) {
-    if (!s) {
+    if (s->destroyed) {
         return -1;
     }
     s->count++;
@@ -232,7 +234,7 @@ int sem_up (semaphore_t *s) {
 // destroi o semáforo, liberando as tarefas bloqueadas
 int sem_destroy (semaphore_t *s) {
 
-    if (!s) {
+    if (s->destroyed) {
         return -1;
     }
     while (!isEmpty(&s->fila)) {
@@ -248,7 +250,7 @@ int sem_destroy (semaphore_t *s) {
             enqueue(&q, (void*) item);
         }
     }
-    s = NULL;
+    s->destroyed = 1;
     return 0;
 }
 
@@ -264,7 +266,7 @@ int barrier_create (barrier_t *b, int N) {
 
 // Chega a uma barreira
 int barrier_join (barrier_t *b) {
-    if (!b) {
+    if (b->count == -1) {
         return -1;
     }
     // printf("tamanho fila = %d\n", (int)(&b->fila)->size);
@@ -301,7 +303,7 @@ int barrier_join (barrier_t *b) {
 
 // Destrói uma barreira
 int barrier_destroy (barrier_t *b) {
-    if (!b) {
+    if (b->count == -1) {
         return -1;
     }
     while (!isEmpty(&b->fila)) {
@@ -319,8 +321,145 @@ int barrier_destroy (barrier_t *b) {
             enqueue(&q, (void*) item);
         }
     }
-    b = NULL;
+    b->count = -1;
     return 0;
+}
+
+// cria uma fila para até max mensagens de size bytes cada
+int mqueue_create (mqueue_t *queue, int max, int size) {
+    initQueue(&queue->fila_mensagens);
+    initQueue(&queue->fila_a_enviar);
+    initQueue(&queue->fila_a_receber);
+    queue->max = max;
+    queue->size = size;
+    return 0;
+}
+
+// envia uma mensagem para a fila
+int mqueue_send (mqueue_t *queue, void *msg) {
+    if (queue->size == -1){
+        return -1;
+    }
+    task_t *c_task = current_task;
+    c_task->waiting_status = 0;
+    if ((&queue->fila_mensagens)->size == queue->max) {
+        enqueue(&queue->fila_a_enviar, (void*) c_task);
+        enqueue(&q_suspended, (void*) c_task);
+        // debugPrint(&s->fila);
+        c_task->state = 2;
+        c_task->quantum = 20;
+        c_task->proc_time+=systime()-proc_time_helper;
+        c_task->priority = c_task->base_priority;
+        task_switch(disp_task);
+    }
+    if (c_task->waiting_status == -1){
+        return -1;
+    }
+    enqueue(&queue->fila_mensagens, msg);
+    // acordar tarefas a receber
+    task_t *item = NULL;
+    // printf("semup %d\n", s->count);
+    if (!isEmpty(&queue->fila_a_receber)) {
+        item = dequeue(&queue->fila_a_receber);
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
+    }
+    if (item){
+        item->state = 0;
+        item->waiting_status = 0;
+        enqueue(&q, (void*) item);
+    }
+    return c_task->waiting_status;
+}
+
+// recebe uma mensagem da fila
+int mqueue_recv (mqueue_t *queue, void *msg) {
+    if (queue->size == -1){
+        return -1;
+    }
+    task_t *c_task = current_task;
+    c_task->waiting_status = 0;
+    if (isEmpty(&queue->fila_mensagens)) {
+        enqueue(&queue->fila_a_receber, (void*) c_task);
+        enqueue(&q_suspended, (void*) c_task);
+        // debugPrint(&s->fila);
+        c_task->state = 2;
+        c_task->quantum = 20;
+        c_task->proc_time+=systime()-proc_time_helper;
+        c_task->priority = c_task->base_priority;
+        task_switch(disp_task);
+    }
+    if (c_task->waiting_status == -1){
+        return -1;
+    }
+    memcpy ( msg, dequeue(&queue->fila_mensagens), queue->size );
+    // acordar tarefas a enviar
+    task_t *item = NULL;
+    // printf("semup %d\n", s->count);
+    if (!isEmpty(&queue->fila_a_enviar)) {
+        item = dequeue(&queue->fila_a_enviar);
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
+    }
+    if (item){
+        item->state = 0;
+        item->waiting_status = 0;
+        enqueue(&q, (void*) item);
+    }
+    return c_task->waiting_status;
+}
+
+// destroi a fila, liberando as tarefas bloqueadas
+int mqueue_destroy (mqueue_t *queue) {
+    if (queue->size == -1){
+        return -1;
+    }
+    while (!isEmpty(&queue->fila_a_receber)) {
+        task_t *item = dequeue(&queue->fila_a_receber);
+        //retira da fila de suspensas
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
+        //coloca na fila de prontas
+        if (item) {
+            item->state = 0;
+            item->waiting_status = -1;
+            enqueue(&q, (void*) item);
+        }
+    }
+    while (!isEmpty(&queue->fila_a_enviar)) {
+        task_t *item = dequeue(&queue->fila_a_enviar);
+        //retira da fila de suspensas
+        for (int i = (&q_suspended)->size-1; i >= 0; i--) {
+            if (((task_t*)(&q_suspended)->data[i]) == item) {
+                remove_task(&q_suspended, i);
+            }
+        }
+        //coloca na fila de prontas
+        if (item) {
+            item->state = 0;
+            item->waiting_status = -1;
+            enqueue(&q, (void*) item);
+        }
+    }
+    queue->size = -1;
+    return 0;
+}
+
+// informa o número de mensagens atualmente na fila
+int mqueue_msgs (mqueue_t *queue) {
+    if (queue->size == -1){
+        return -1;
+    }
+    return (&queue->fila_mensagens)->size;
 }
 
 

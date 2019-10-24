@@ -34,6 +34,7 @@ typedef struct task_t {
 typedef struct {
   Queue fila; // fila de tarefas
   int count; //contador
+  int destroyed;
 } semaphore_t ;
 
 // estrutura que define um mutex
@@ -49,7 +50,11 @@ typedef struct {
 
 // estrutura que define uma fila de mensagens
 typedef struct {
-  // preencher quando necessário
+  Queue fila_mensagens; // fila de mensagens
+  Queue fila_a_enviar; // fila de tarefas a enviar mensagem
+  Queue fila_a_receber; // fila de tarefas a receber mensagem
+  int max; // maximo de mensagens na fila de mensagens
+  int size; // tamanho em bytes de cada mensagem
 } mqueue_t ;
 
 #endif
